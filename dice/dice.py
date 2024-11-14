@@ -200,6 +200,7 @@ class App:
 
         # ボタンがクリックされたらサイコロを振る
         if self.button_rect.is_clicked():
+            pyxel.play(0, pyxel.sounds[0])
             for d in self.dice:
                 d.roll()
 
