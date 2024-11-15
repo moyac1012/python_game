@@ -73,11 +73,32 @@ class Field:
             [1,0,0,0,0,0,0,0,0,0,0,1],
             [1,1,1,1,1,1,1,1,1,1,1,1],
         ]
+
     def tileAt(self, x, y):
         return self.tiles[y][x]
-    
+
+    def isLineFilled(self, line):
+        for x in range(1, FIELD_WIDTH-1):
+            if line[x] != 2:
+                return False
+        return True
+
+    def deleteLine(self, y):
+        for yi in range(y, 0, -1):
+            self.tiles[yi] = self.tiles[yi-1].copy()
+        # トップ行をリセット
+        self.tiles[0] = [1] + [0]*(FIELD_WIDTH-2) + [1]
+
+    def clearLines(self):
+        lines_cleared = 0
+        for y in range(FIELD_HEIGHT):
+            if self.isLineFilled(self.tiles[y]):
+                self.deleteLine(y)
+                lines_cleared += 1
+        return lines_cleared
+
     def putBlock(self, x, y):
-        self.tiles[y][x] = 1
+        self.tiles[y][x] = 2
 
     def draw(self):
         for y in range(FIELD_HEIGHT):
@@ -85,12 +106,12 @@ class Field:
                 if self.tileAt(x, y) == 0:
                     continue
                 Block(x, y).draw()
-
 class App:
     def __init__(self):
         pyxel.init(WIDTH, HEIGHT, title="TETRIS")
-        self.mino = Mino(5, 10, 0, 0)
+        self.mino = Mino(5, 1, 0, 0)
         self.minoVx = 0
+        self.minoVy = 0
         self.minoVr = 0
         self.field = Field()
         self.fc = 0
@@ -111,10 +132,13 @@ class App:
             self.minoVx += 1
         if pyxel.btnp(pyxel.KEY_LEFT):
             self.minoVx -= 1
-        if pyxel.btnp(pyxel.KEY_UP):
-            self.minoVr += 1
-        if pyxel.btnp(pyxel.KEY_DOWN):
+        if pyxel.btnp(pyxel.KEY_A):
             self.minoVr -= 1
+        if pyxel.btnp(pyxel.KEY_D):
+            self.minoVr += 1
+
+        if pyxel.btn(pyxel.KEY_DOWN):
+            self.minoVy += 1
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
@@ -132,8 +156,20 @@ class App:
             else:
                 for b in self.mino.calcBlocks():
                     self.field.putBlock(b.x, b.y)
-                    self.mino = Mino(5, 10, 0, 0)
+                # ミノを配置した後にラインクリアを行う
+                self.field.clearLines()
+                # ミノをリセット
+                self.mino = Mino(5, 1, 0, 0)
 
+        # 下移動
+        if self.minoVy != 0:
+            futureMino = self.mino.copy()
+            futureMino.y += self.minoVy
+
+            if self.isMinoMovable(futureMino, self.field):
+                self.mino.y += self.minoVy
+
+            self.minoVy = 0
 
         # 左右移動
         if self.minoVx != 0:
@@ -154,8 +190,6 @@ class App:
                 self.mino.rot += self.minoVr
 
             self.minoVr = 0
-
-
 
         self.fc += 1
 
