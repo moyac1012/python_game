@@ -1,5 +1,5 @@
 import pyxel
-
+import random
 WIDTH = 200
 HEIGHT = 200
 DOT_SIZE = 8
@@ -23,12 +23,21 @@ class Mino:
         self.shape = shape
 
     def calcBlocks(self):
-        blocks = [
-            Block(-1, 0),
-            Block(0, 0),
-            Block(0, -1),
-            Block(1, 0),
-        ]
+        blocks = []
+        if self.shape == 0:
+            blocks = [Block(-1, 0),Block(0, 0),Block(0, -1),Block(1, 0)]
+        elif self.shape == 1:
+            blocks = [Block(0, -1),Block(0, 0),Block(1, 0),Block(1, -1)]
+        elif self.shape == 2:
+            blocks = [Block(-1, 0),Block(0, 0),Block(0, -1),Block(-1, 1)]
+        elif self.shape == 3:
+            blocks = [Block(0, 1),Block(0, 0),Block(0, -1),Block(0, -2)]
+        elif self.shape == 4:
+            blocks = [Block(0, 0),Block(0, 1),Block(1, 0),Block(1, 1)]
+        elif self.shape == 5:
+            blocks = [Block(0, 1),Block(0, 0),Block(0, -1),Block(1, -1)]
+        elif self.shape == 6:
+            blocks = [Block(0, 1),Block(0, 0),Block(0, -1),Block(-1, -1)]
 
         rot = self.rot % 4
         for _ in range(rot):
@@ -109,7 +118,7 @@ class Field:
 class App:
     def __init__(self):
         pyxel.init(WIDTH, HEIGHT, title="TETRIS")
-        self.mino = Mino(5, 1, 0, 0)
+        self.mino = self.makeMino()
         self.minoVx = 0
         self.minoVy = 0
         self.minoVr = 0
@@ -126,6 +135,8 @@ class App:
                 return False
         return True
 
+    def makeMino(self):
+        return Mino(5, 1, 0, random.randrange(0, 7))
 
     def input(self):
         if pyxel.btnp(pyxel.KEY_RIGHT):
@@ -159,7 +170,7 @@ class App:
                 # ミノを配置した後にラインクリアを行う
                 self.field.clearLines()
                 # ミノをリセット
-                self.mino = Mino(5, 1, 0, 0)
+                self.mino = self.makeMino()
 
         # 下移動
         if self.minoVy != 0:
